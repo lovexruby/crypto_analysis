@@ -1,14 +1,21 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 # Load Dataframe
-df = pd.read_csv("data/crypto_prices.csv")
+dirname = os.path.dirname(__file__)
+csv_path = os.path.join(dirname, 'data', 'crypto_prices.csv')
+df = pd.read_csv(csv_path)
 
 # Sidebar for Options
 st.sidebar.title("Settings")
 coins = df["coin"].unique()
-selected_coin = st.sidebar.selectbox("Choose a Cryptocurrency", coins)
+# Capitalize Coins
+coin_map = {coin.capitalize(): coin for coin in coins}
+selected_coin_cap = st.sidebar.selectbox("Choose a Cryptocurrency", list(coin_map.keys()))
+selected_coin = coin_map[selected_coin_cap]
+
 
 # Choose Timeframe
 min_date = df["date"].min()
@@ -18,7 +25,7 @@ date_range = st.sidebar.date_input("Choose Timeframe", [pd.to_datetime(min_date)
 # Filter Data
 df["date"] = pd.to_datetime(df["date"])
 filtered_df = df[
-    (df["coin"] == selected_coin) &
+    (df["coin"] == selected_coin_cap) &
     (df["date"] >= pd.to_datetime(date_range[0])) &
     (df["date"] <= pd.to_datetime(date_range[1]))
 ]
