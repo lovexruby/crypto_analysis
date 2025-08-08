@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 import os
+import numpy as np
+from datetime import datetime
 
 # Load Dataframe
 dirname = os.path.dirname(__file__)
@@ -25,7 +27,7 @@ date_range = st.sidebar.date_input("Choose Timeframe", [pd.to_datetime(min_date)
 # Filter Data
 df["date"] = pd.to_datetime(df["date"])
 filtered_df = df[
-    (df["coin"] == selected_coin_cap) &
+    (df["coin"] == selected_coin) &
     (df["date"] >= pd.to_datetime(date_range[0])) &
     (df["date"] <= pd.to_datetime(date_range[1]))
 ]
@@ -39,11 +41,31 @@ st.title("Crypto-Dashboard")
 st.write(f"**Average Price:** €{average:.2f}")
 st.write(f"**Standard Deviation:** €{std_dev:.2f}")
 
+# Convert Date into a Number for the Regressioncalculation
+x_numeric = filtered_df["date"].map(datetime.toordinal)
+y = filtered_df["price"]
+
+# Calculate Regression
+slope, intercept = np.polyfit(x_numeric, y, 1)
+trend = slope * x_numeric + intercept
+
+
 # Show Plot
-fig, ax = plt.subplots()
-ax.plot(filtered_df["date"], filtered_df["price"], label = selected_coin)
-ax.set_xlabel("Date")
-ax.set_ylabel("Price in Euro")
-ax.set_title(f"Priceevolution of {selected_coin.upper()}")
-ax.legend()
-st.pyplot(fig)
+fig = px.line(
+    filtered_df,
+    x="date",
+    y="price",
+    title=f"Price Evolution of {selected_coin.capitalize()}",
+    labels={f"price": "Price in Euro", "date": "Date"},
+)
+
+fig.add_scatter(
+    x=filtered_df["date"],
+    y=trend,
+    mode="lines",
+    name="Trend Line",
+    line=dict(dash="dash", color="red")
+)
+
+fig.update_traces(mode="lines+markers", selector=dict(type='scatter', name=selected_coin.capitalize()))
+st.plotly_chart(fig)
