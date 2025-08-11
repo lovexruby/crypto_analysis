@@ -36,10 +36,30 @@ filtered_df = df[
 average = filtered_df["price"].mean()
 std_dev = filtered_df["price"].std()
 
+# Further Key Numbers
+min_price = filtered_df["price"].min()
+max_price = filtered_df["price"].max()
+median_price = filtered_df["price"].median()
+pct_change = ((filtered_df["price"].iloc[0]) / filtered_df["price"].iloc[0]) * 100
+volatility_pct = (std_dev/average) * 100
+days_count = filtered_df.shape[0]
+
 # Output
-st.title("Crypto-Dashboard")
-st.write(f"**Average Price:** €{average:.2f}")
-st.write(f"**Standard Deviation:** €{std_dev:.2f}")
+# Creating Columns
+col1, col2 = st.columns([1, 2])
+# Output Column 1
+with col1:
+    st.title("Crypto")
+    st.write(f"**Average Price:** €{average:.2f}")
+    st.write(f"**Standard Deviation:** €{std_dev:.2f}")
+
+    st.subheader("Further Key Numbers")
+    st.write(f"**Min Price:** €{min_price:.2f}")
+    st.write(f"**Max Price:** €{max_price:.2f}")
+    st.write(f"**Median Price:** €{median_price:.2f}")
+    st.write(f"**Percentual Change:** {pct_change:.2f}%")
+    st.write(f"**Volatility:** {volatility_pct:.2f}%")
+    st.write(f"**Count of Marketdays:**{days_count}")
 
 # Convert Date into a Number for the Regressioncalculation
 x_numeric = filtered_df["date"].map(datetime.toordinal)
@@ -68,4 +88,7 @@ fig.add_scatter(
 )
 
 fig.update_traces(mode="lines+markers", selector=dict(type='scatter', name=selected_coin.capitalize()))
-st.plotly_chart(fig)
+with col2:
+    st.title("Dashboard")
+    st.markdown("<div style='margin-top:1px'></div>", unsafe_allow_html=True)
+    st.plotly_chart(fig, use_container_width=True)
